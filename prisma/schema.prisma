@@ -1,0 +1,57 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Location {
+  id               String      @id @default(uuid())
+  building         String
+  locationName     String
+  locationNumber   String    @unique
+  parentLocationId String?
+  parentLocation   Location? @relation("LocationToLocation", fields: [parentLocationId], references: [id])
+  childLocations   Location[] @relation("LocationToLocation")
+  versions         LocationVersion[]
+
+  @@index([parentLocationId])
+}
+
+model LocationVersion {
+  id            String   @id @default(uuid())
+  locationId    String
+  location      Location @relation(fields: [locationId], references: [id])
+  versionNumber Int
+  building      String
+  locationName  String
+  locationNumber String
+  parentLocationId String?
+  createdAt     DateTime @default(now())
+}
+
+model DatabaseLog {
+  id        String      @id @default(uuid())
+  level     String
+  message   String
+  meta      Json
+  createdAt DateTime @default(now())
+}
+
+model EndpointLog {
+  id        String      @id @default(uuid())
+  method    String
+  url       String
+  status    Int
+  responseTime Int
+  meta      Json
+  createdAt DateTime @default(now())
+}
